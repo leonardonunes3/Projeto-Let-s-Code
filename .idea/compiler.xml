@@ -9,5 +9,8 @@
         <module name="projeto_bancario" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="Projeto-Let-s-Code" target="11" />
+    </bytecodeTargetLevel>
   </component>
 </project>
