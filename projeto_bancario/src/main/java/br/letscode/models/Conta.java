@@ -1,4 +1,4 @@
 package br.letscode.models;
 
-public class Conta {
+public abstract class Conta {
 }
