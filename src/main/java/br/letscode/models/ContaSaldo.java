@@ -26,4 +26,8 @@ public abstract class ContaSaldo extends Conta {
         this.sacar(valor);
         contaDestino.depositar(valor);
     }
+
+    public BigDecimal getSaldo() {
+        return saldo;
+    }
 }

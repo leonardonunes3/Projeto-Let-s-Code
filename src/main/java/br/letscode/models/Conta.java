@@ -13,4 +13,16 @@ public abstract class Conta {
     }
 
     public abstract void processaRendimentos(Period periodo);
+
+    public int getNumero() {
+        return numero;
+    }
+
+    public void setNumero(int numero) {
+        this.numero = numero;
+    }
+
+    public Pessoa getCliente() {
+        return cliente;
+    }
 }
