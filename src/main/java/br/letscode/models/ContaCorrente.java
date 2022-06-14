@@ -18,10 +18,5 @@ public class ContaCorrente extends ContaSaldo {
     }
 
     @Override
-    public void transferir(ContaSaldo contaDestino, BigDecimal valor) {
-        super.transferir(contaDestino, valor);
-    }
-
-    @Override
     public void processaRendimentos(Period periodo) {}
 }
