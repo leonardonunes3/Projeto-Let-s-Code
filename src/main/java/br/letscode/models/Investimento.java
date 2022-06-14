@@ -17,7 +17,8 @@ public class Investimento {
     private final double DESVIO_PADRAO_RENDIMENTO;
 
     public Investimento(String nome) {
-        this.nome = nome;
+        setNome(nome);
+        this.saldo = BigDecimal.ZERO;
         Random random = new Random();
         this.MEDIA_RENDIMENTO = (
                 MEDIA_RENDIMENTO_TETO_FECHADO_PADRAO -
@@ -50,14 +51,18 @@ public class Investimento {
     public void atualizaSaldo(Period periodo, BigDecimal rendimentoExtra){
         this.saldo = this.saldo.multiply(BigDecimal.ONE.add(BigDecimal.valueOf(
                 new Random().nextGaussian()*this.DESVIO_PADRAO_RENDIMENTO + this.MEDIA_RENDIMENTO
-        )).multiply(rendimentoExtra).pow(periodo.getDays()));
+        )).pow(periodo.getDays())).multiply(rendimentoExtra);
     }
 
     public void recebeSaldo(BigDecimal valor){
+
         this.saldo = this.saldo.add(valor);
     }
 
     public void retiraSaldo(BigDecimal valor){
+        if(valor.compareTo(this.saldo) > 0) {
+            throw new IllegalStateException("Saldo insuficiente para realizar a operação.");
+        }
         this.saldo = this.saldo.subtract(valor);
     }
 

@@ -11,12 +11,15 @@ public class ContaCorrente extends ContaSaldo {
 
     @Override
     public void sacar(BigDecimal valor) {
-        super.sacar(valor);// TODO: adicionar taxa de serviço?
+        if (this.getCliente() instanceof PessoaJuridica) {
+            valor = valor.multiply(BigDecimal.valueOf(1.005));
+        }
+        super.sacar(valor);
     }
 
     @Override
-    public void depositar(BigDecimal valor) {
-        super.depositar(valor);// TODO: adicionar taxa de serviço?
+    public void transferir(ContaSaldo contaDestino, BigDecimal valor) {
+        super.transferir(contaDestino, valor);
     }
 
     @Override

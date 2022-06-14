@@ -14,6 +14,7 @@ public class ContaPoupanca extends ContaSaldo {
         }
     }
 
+
     @Override
     public void processaRendimentos(Period periodo) {
         if(periodo.isNegative()) throw new IllegalArgumentException("Periodo não pode ser negativo");

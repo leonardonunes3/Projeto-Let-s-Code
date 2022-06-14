@@ -23,6 +23,9 @@ public abstract class ContaSaldo extends Conta {
     }
 
     public void transferir(ContaSaldo contaDestino, BigDecimal valor){
+        if(contaDestino.equals(this)) {
+            throw new IllegalArgumentException("A conta de origem deve ser distinta da conta de destino");
+        }
         this.sacar(valor);
         contaDestino.depositar(valor);
     }
