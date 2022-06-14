@@ -1,6 +1,7 @@
 package br.letscode.models;
 
 import java.math.BigDecimal;
+import java.time.Period;
 import java.util.Random;
 
 public class Investimento {
@@ -46,10 +47,10 @@ public class Investimento {
         return saldo;
     }
 
-    public void atualizaSaldo(){
+    public void atualizaSaldo(Period periodo, BigDecimal rendimentoExtra){
         this.saldo = this.saldo.multiply(BigDecimal.ONE.add(BigDecimal.valueOf(
                 new Random().nextGaussian()*this.DESVIO_PADRAO_RENDIMENTO + this.MEDIA_RENDIMENTO
-        )));
+        )).multiply(rendimentoExtra).pow(periodo.getDays()));
     }
 
     public void recebeSaldo(BigDecimal valor){
