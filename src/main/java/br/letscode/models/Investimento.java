@@ -7,9 +7,9 @@ import java.util.Random;
 public class Investimento {
 
     private static final double MEDIA_RENDIMENTO_CHAO_ABERTO_PADRAO = 0.001;
-    private static final double MEDIA_RENDIMENTO_TETO_FECHADO_PADRAO = 0.101;
+    private static final double MEDIA_RENDIMENTO_TETO_FECHADO_PADRAO = 0.002;
     private static final double DESVIO_PADRAO_RENDIMENTO_CHAO_ABERTO_PADRAO = 0;
-    private static final double DESVIO_PADRAO_RENDIMENTO_TETO_FECHADO_PADRAO = 0.15;
+    private static final double DESVIO_PADRAO_RENDIMENTO_TETO_FECHADO_PADRAO = 0.0015;
 
     private String nome;
     private BigDecimal saldo;
@@ -51,7 +51,7 @@ public class Investimento {
     public void atualizaSaldo(Period periodo, BigDecimal rendimentoExtra){
         this.saldo = this.saldo.multiply(BigDecimal.ONE.add(BigDecimal.valueOf(
                 new Random().nextGaussian()*this.DESVIO_PADRAO_RENDIMENTO + this.MEDIA_RENDIMENTO
-        )).pow(periodo.getDays())).multiply(rendimentoExtra);
+        ).multiply(rendimentoExtra)).pow(periodo.getDays()));
     }
 
     public void recebeSaldo(BigDecimal valor){
