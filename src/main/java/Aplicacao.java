@@ -1,5 +1,6 @@
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 import br.letscode.models.*;
@@ -10,34 +11,34 @@ import br.letscode.ui.OpcaoMenu;
 public class Aplicacao {
 
     private final HashMap<String, Menu> MENUS = new HashMap<>(Map.ofEntries(
-        Map.entry("br.letscode.ui.Menu Principal", new Menu(
-            "br.letscode.ui.Menu Principal",
+        Map.entry("Menu Principal", new Menu(
+            "Menu Principal",
             Arrays.asList()
         )),
-        Map.entry("br.letscode.ui.Menu Login", new Menu(
+        Map.entry("Menu Login", new Menu(
             "Login",
             Arrays.asList(
                 new OpcaoMenu("Entrar", this::entraConta),
-                new OpcaoMenu("Criar Conta", () -> this.mostraMenu("br.letscode.ui.Menu Acesso Pessoa"))
+                new OpcaoMenu("Criar Conta", () -> this.mostraMenu("Menu Acesso Pessoa"))
             )
         )),
-        Map.entry("br.letscode.ui.Menu Acesso Pessoa", new Menu(
+        Map.entry("Menu Acesso Pessoa", new Menu(
             "Já possui cadastro?",
             Arrays.asList(
                     new OpcaoMenu("Sim", this::acessaCadastro),
-                    new OpcaoMenu("Não", () -> this.mostraMenu("br.letscode.ui.Menu Cria Pessoa")),
-                    new OpcaoMenu("Voltar", () -> this.mostraMenu("br.letscode.ui.Menu Login"))
+                    new OpcaoMenu("Não", () -> this.mostraMenu("Menu Cria Pessoa")),
+                    new OpcaoMenu("Voltar", () -> this.mostraMenu("Menu Login"))
             )
         )),
-        Map.entry("br.letscode.ui.Menu Cria Pessoa", new Menu(
+        Map.entry("Menu Cria Pessoa", new Menu(
             "Escolha a opção mais adequada à conta que você deseja criar: ",
             Arrays.asList(
                 new OpcaoMenu("Pessoa Física", this::criaPessoaFisica),
                 new OpcaoMenu("Pessoa Jurídica", this::criaPessoaJuridica),
-                new OpcaoMenu("Voltar", () -> this.mostraMenu("br.letscode.ui.Menu Acesso Pessoa"))// como MENUS ainda não terminou de ser criado, não se pode usar Method Reference aqui
+                new OpcaoMenu("Voltar", () -> this.mostraMenu("Menu Acesso Pessoa"))// como MENUS ainda não terminou de ser criado, não se pode usar Method Reference aqui
             )
         )),
-        Map.entry("br.letscode.ui.Menu Cria Conta", new Menu(
+        Map.entry("Menu Cria Conta", new Menu(
             "Que tipo de conta você deseja criar?",
             Arrays.asList(
                 new OpcaoMenu("Conta Corrente", this::criaContaCorrente),
@@ -48,6 +49,8 @@ public class Aplicacao {
     ));
     private Pessoa clienteAtual = null;
     private Conta contaAtual = null;
+    private HashSet<Conta> contas = new HashSet<>();
+    private HashSet<Pessoa> pessoas = new HashSet<>();
 
     public void mostraMenu(String nome){
         this.MENUS.get(nome).mostraMenu();
@@ -85,7 +88,7 @@ public class Aplicacao {
             (s) -> s
         );
         ((PessoaFisica)this.clienteAtual).setCpf(entradaCpf.pedeEntrada());
-        this.mostraMenu("br.letscode.ui.Menu Cria Conta");
+        this.mostraMenu("Menu Cria Conta");
     }
     public void criaPessoaJuridica(){
         this.clienteAtual = new PessoaJuridica();
@@ -97,7 +100,7 @@ public class Aplicacao {
                 (s) -> s
         );
         ((PessoaJuridica)this.clienteAtual).setCnpj(entradaCnpj.pedeEntrada());
-        this.mostraMenu("br.letscode.ui.Menu Cria Conta");
+        this.mostraMenu("Menu Cria Conta");
     }
 
     public void menuHome(Conta conta) {
@@ -143,8 +146,29 @@ public class Aplicacao {
     public void acessaCadastro(){
         // TODO: implementar menu de acesso ao cadastro de pessoa, que pede um cpf ou cnpj e redireciona para a criação de conta
         System.out.println("Acessando um cadastro existente");
-
-        this.mostraMenu("br.letscode.ui.Menu Cria Conta");
+        // Menu menuVerificacaoPessoa = new Menu("Você já tem cadastro no nosso banco?", new String[] { "Sim", "Não" });
+        // switch (menuVerificacaoPessoa.pegaResultado()) {
+        //     case 1:
+        //         Menu menuPessoa = new Menu("Qual o seu CPF/CNPJ? ", new String[] { "Sair" });
+        //         int entradaUsuario = menuPessoa.pegaResultado();
+        //         for (Pessoa pessoa : pessoas) {
+        //             if (pessoa instanceof PessoaFisica) {
+        //                 if (((PessoaFisica) pessoa).getCpf() == String.valueOf(entradaUsuario)) {
+        //                     return pessoa;
+        //                 }
+        //             } else {
+        //                 if (((PessoaJuridica) pessoa).getCnpj() == String.valueOf(entradaUsuario)) {
+        //                     return pessoa;
+        //                 }
+        //             }
+        //         }
+        //     case 2:
+        //         return criaPessoa();
+        //     default:
+        //         verificaSePessoaExiste();
+        // }
+        // return null;
+        this.mostraMenu("Menu Cria Conta");
     }
 
     public void entraConta(){
@@ -154,6 +178,7 @@ public class Aplicacao {
 
     public static void main(String[] args) {
         Aplicacao aplicacao = new Aplicacao();
-        aplicacao.mostraMenu("br.letscode.ui.Menu Login");
+        aplicacao.mostraMenu("Menu Login");
     }
+
 }
