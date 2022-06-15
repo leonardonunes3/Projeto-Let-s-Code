@@ -1,9 +1,13 @@
 import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.Scanner;
 
 import br.letscode.models.*;
 
 public class Aplicacao {
+    private static HashSet<Conta> contas = new HashSet<>();
+    private static HashSet<Pessoa> pessoas = new HashSet<>();
+
     private static Pessoa criaPessoa() {
         Menu menuPessoa = new Menu("Escolha a opção mais adequada à conta que você deseja criar: ",
                 new String[] { "Pessoa Física", "Pessoa Jurídica", "Voltar" });
@@ -68,7 +72,33 @@ public class Aplicacao {
         scanner.close();
     }
 
-    private static Conta criaConta(Pessoa cliente) {
+    private static Pessoa verificaSePessoaExiste() {
+        Menu menuVerificacaoPessoa = new Menu("Você já tem cadastro no nosso banco?", new String[] { "Sim", "Não" });
+        switch (menuVerificacaoPessoa.pegaResultado()) {
+            case 1:
+                Menu menuPessoa = new Menu("Qual o seu CPF/CNPJ? ", new String[] { "Sair" });
+                int entradaUsuario = menuPessoa.pegaResultado();
+                for (Pessoa pessoa : pessoas) {
+                    if (pessoa instanceof PessoaFisica) {
+                        if (((PessoaFisica) pessoa).getCpf() == String.valueOf(entradaUsuario)) {
+                            return pessoa;
+                        }
+                    } else {
+                        if (((PessoaJuridica) pessoa).getCnpj() == String.valueOf(entradaUsuario)) {
+                            return pessoa;
+                        }
+                    }
+                }
+            case 2:
+                return criaPessoa();
+            default:
+                verificaSePessoaExiste();
+        }
+        return null;
+    }
+
+    private static Conta criaConta() {
+        Pessoa pessoa = verificaSePessoaExiste();
         Menu menuTipoConta = new Menu("Escolha uma opção de conta: ",
                 new String[] { "Criar conta corrente", "Criar conta poupança", "Criar conta investimento" });
         menuTipoConta.mostraMenu();
@@ -86,10 +116,37 @@ public class Aplicacao {
         }
     }
 
-    public static void main(String[] args) {
-        Menu menuInicial = new Menu("Escolha uma opção: ", new String[] { "Criar Conta" });
-        menuInicial.mostraMenu();
-        Pessoa cliente = criaPessoa();
-        Conta conta = criaConta(cliente);
+    private static void menuLogin() {
+        boolean contaEncontrada = false;
+        while (!contaEncontrada) {
+            Menu menuLogin = new Menu("Digite o número da conta:", new String[] { "Sair" });
+            menuLogin.mostraMenu();
+            int entradaUsuario = menuLogin.pegaResultado();
+            switch (entradaUsuario) {
+                case 1:
+                    main(null);
+
+                default:
+                    for (Conta conta : contas) {
+                        if (conta.getNumero() == entradaUsuario) {
+                            contaEncontrada = true;
+                            menuHome(conta);
+                        }
+                    }
+            }
+        }
+
     }
+
+    public static void main(String[] args) {
+        Menu menuInicial = new Menu("Escolha uma opção: ", new String[] { "Entrar em uma conta", "Criar Conta" });
+        menuInicial.mostraMenu();
+        switch (menuInicial.pegaResultado()) {
+            case 1:
+                menuLogin();
+            case 2:
+                criaConta();
+        }
+    }
+
 }
