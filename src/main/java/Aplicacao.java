@@ -100,24 +100,30 @@ public class Aplicacao {
         this.clienteAtual = new PessoaFisica();
         this.setaAtributosComunsPessoa(this.clienteAtual);
 
-        EntradaDadoMenu<String> entradaCpf = new EntradaDadoMenu<>(
-            "Digite o CPF: ",
-            (s) -> true,
-            (s) -> s
-        );
-        ((PessoaFisica)this.clienteAtual).setCpf(entradaCpf.pedeEntrada());
+        boolean flag = false;
+        while(!flag) {
+            EntradaDadoMenu<String> entradaCpf = new EntradaDadoMenu<>(
+                    "Digite o CPF: ",
+                    (s) -> true,
+                    (s) -> s
+            );
+            flag = ((PessoaFisica)this.clienteAtual).setCpf(entradaCpf.pedeEntrada());
+        }
         this.mostraMenu("Menu Cria Conta");
     }
     public void criaPessoaJuridica(){
         this.clienteAtual = new PessoaJuridica();
         this.setaAtributosComunsPessoa(this.clienteAtual);
 
-        EntradaDadoMenu<String> entradaCnpj = new EntradaDadoMenu<>(
-                "Digite o CNPJ: ",
-                (s) -> true,
-                (s) -> s
-        );
-        ((PessoaJuridica)this.clienteAtual).setCnpj(entradaCnpj.pedeEntrada());
+        boolean flag = false;
+        while(!flag) {
+            EntradaDadoMenu<String> entradaCnpj = new EntradaDadoMenu<>(
+                    "Digite o CNPJ: ",
+                    (s) -> true,
+                    (s) -> s
+            );
+            flag = ((PessoaJuridica) this.clienteAtual).setCnpj(entradaCnpj.pedeEntrada());
+        }
         this.mostraMenu("Menu Cria Conta");
     }
 
@@ -125,18 +131,37 @@ public class Aplicacao {
         this.mostraMenu("Menu Home Corrente");
     }
 
+
     public void criaContaCorrente(){
-        // TODO: implementar criação de conta corrente
+        EntradaDadoMenu<String> entradaNumero = new EntradaDadoMenu<>(
+                "Digite o numero da conta: ",
+                (s) -> true,
+                (s) -> s
+        );
+        this.contaAtual = new ContaCorrente(Integer.parseInt(entradaNumero.pedeEntrada()), clienteAtual);
+
         System.out.println("Criando conta corrente");
     }
 
     public void criaContaInvestimento(){
-        // TODO: implementar criação de conta investimento
+        EntradaDadoMenu<String> entradaNumero = new EntradaDadoMenu<>(
+                "Digite o numero da conta: ",
+                (s) -> true,
+                (s) -> s
+        );
+        this.contaAtual = new ContaInvestimento(Integer.parseInt(entradaNumero.pedeEntrada()), clienteAtual);
+
         System.out.println("Criando conta investimento");
     }
 
     public void criaContaPoupanca(){
-        // TODO: implementar criação de conta poupança
+        EntradaDadoMenu<String> entradaNumero = new EntradaDadoMenu<>(
+                "Digite o numero da conta: ",
+                (s) -> true,
+                (s) -> s
+        );
+        this.contaAtual = new ContaPoupanca(Integer.parseInt(entradaNumero.pedeEntrada()), clienteAtual);
+
         System.out.println("Criando conta poupança");
     }
 
