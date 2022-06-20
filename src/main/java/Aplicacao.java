@@ -100,30 +100,32 @@ public class Aplicacao {
         this.clienteAtual = new PessoaFisica();
         this.setaAtributosComunsPessoa(this.clienteAtual);
 
-        boolean flag = false;
-        while(!flag) {
-            EntradaDadoMenu<String> entradaCpf = new EntradaDadoMenu<>(
-                    "Digite o CPF: ",
-                    (s) -> true,
-                    (s) -> s
-            );
-            flag = ((PessoaFisica)this.clienteAtual).setCpf(entradaCpf.pedeEntrada());
-        }
+        EntradaDadoMenu<String> entradaCpf = new EntradaDadoMenu<>(
+            "Digite o CPF: ",
+            ((PessoaFisica)this.clienteAtual)::setCpf,
+            (s) -> s
+        );
+        String cpf = entradaCpf.pedeEntrada();
+
+        ((PessoaFisica)this.clienteAtual).setCpf(cpf);
+        this.pessoas.put(cpf, this.clienteAtual);
+
         this.mostraMenu("Menu Cria Conta");
     }
     public void criaPessoaJuridica(){
         this.clienteAtual = new PessoaJuridica();
         this.setaAtributosComunsPessoa(this.clienteAtual);
 
-        boolean flag = false;
-        while(!flag) {
-            EntradaDadoMenu<String> entradaCnpj = new EntradaDadoMenu<>(
-                    "Digite o CNPJ: ",
-                    (s) -> true,
-                    (s) -> s
-            );
-            flag = ((PessoaJuridica) this.clienteAtual).setCnpj(entradaCnpj.pedeEntrada());
-        }
+        EntradaDadoMenu<String> entradaCnpj = new EntradaDadoMenu<>(
+            "Digite o CNPJ: ",
+            ((PessoaJuridica)this.clienteAtual)::setCnpj,
+            (s) -> s
+        );
+        String cnpj = entradaCnpj.pedeEntrada();
+
+        ((PessoaJuridica) this.clienteAtual).setCnpj(cnpj);
+        this.pessoas.put(cnpj, this.clienteAtual);
+
         this.mostraMenu("Menu Cria Conta");
     }
 
@@ -139,8 +141,9 @@ public class Aplicacao {
                 (s) -> s
         );
         this.contaAtual = new ContaCorrente(Integer.parseInt(entradaNumero.pedeEntrada()), clienteAtual);
+        this.contas.put(this.contaAtual.getNumero(), this.contaAtual);
 
-        System.out.println("Criando conta corrente");
+        this.mostraMenu("Menu Home Saldo");
     }
 
     public void criaContaInvestimento(){
@@ -150,8 +153,9 @@ public class Aplicacao {
                 (s) -> s
         );
         this.contaAtual = new ContaInvestimento(Integer.parseInt(entradaNumero.pedeEntrada()), clienteAtual);
+        this.contas.put(this.contaAtual.getNumero(), this.contaAtual);
 
-        System.out.println("Criando conta investimento");
+        this.mostraMenu("Menu Home Investimento");
     }
 
     public void criaContaPoupanca(){
@@ -161,8 +165,9 @@ public class Aplicacao {
                 (s) -> s
         );
         this.contaAtual = new ContaPoupanca(Integer.parseInt(entradaNumero.pedeEntrada()), clienteAtual);
+        this.contas.put(this.contaAtual.getNumero(), this.contaAtual);
 
-        System.out.println("Criando conta poupança");
+        this.mostraMenu("Menu Home Saldo");
     }
 
     public void acessaCadastro(){
@@ -255,6 +260,7 @@ public class Aplicacao {
         } catch(Exception e){
             System.out.println(e.getMessage());
         }
+        this.mostraMenu("Menu Home Saldo");
     }
 
     public void depositar(){
@@ -279,6 +285,7 @@ public class Aplicacao {
         } catch(Exception e){
             System.out.println(e.getMessage());
         }
+        this.mostraMenu("Menu Home Saldo");
     }
 
     public void transferir(){
@@ -318,17 +325,17 @@ public class Aplicacao {
             ContaSaldo contaSaldo = (ContaSaldo) this.contaAtual;
             try{
                 contaSaldo.sacar(valor);
-            } catch(Exception e){
-                System.out.println(e.getMessage());
-            }
 
-            ContaSaldo contaDestino = (ContaSaldo) this.contas.get(numeroConta);
-            try{
-                contaDestino.depositar(valor);
+                ContaSaldo contaDestino = (ContaSaldo) this.contas.get(numeroConta);
+                try{
+                    contaDestino.depositar(valor);
+                } catch(Exception e){
+                    // não deveria ser possível, mas no caso de acontecer...
+                    System.out.println(e.getMessage());
+                    throw new IllegalStateException("Erro de sistema: transferência parcialmente concluída.");
+                }
             } catch(Exception e){
-                // não deveria ser possível, mas no caso de acontecer...
                 System.out.println(e.getMessage());
-                throw new IllegalStateException("Erro de sistema: transferência parcialmente concluída.");
             }
         }
         this.mostraMenu("Menu Home Saldo");

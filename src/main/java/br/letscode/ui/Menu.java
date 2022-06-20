@@ -40,7 +40,7 @@ public class Menu {
             textoBuilder.append(opcoes.get(i - 1).getTitulo());
             textoBuilder.append('\n');
         }
-        textoBuilder.append("==================").append('\n');
+        textoBuilder.append("==================");
         this.ESCOLHA_OPCAO.setTexto(textoBuilder.toString());
     }
 
