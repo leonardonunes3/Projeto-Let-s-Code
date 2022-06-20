@@ -1,6 +1,6 @@
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 
 import br.letscode.models.*;
@@ -11,10 +11,6 @@ import br.letscode.ui.OpcaoMenu;
 public class Aplicacao {
 
     private final HashMap<String, Menu> MENUS = new HashMap<>(Map.ofEntries(
-        Map.entry("Menu Principal", new Menu(
-            "Menu Principal",
-            Arrays.asList()
-        )),
         Map.entry("Menu Login", new Menu(
             "Login",
             Arrays.asList(
@@ -45,12 +41,34 @@ public class Aplicacao {
                 new OpcaoMenu("Conta Investimento", this::criaContaInvestimento),
                 new OpcaoMenu("Conta Poupança", this::criaContaPoupanca)
             ).subList(0, this.clienteAtual instanceof PessoaJuridica ? 2 : 3)
+        )),
+        Map.entry("Menu Home Saldo", new Menu(
+            "Qual operação você deseja realizar?",
+            Arrays.asList(
+                new OpcaoMenu("Sacar", this::sacar),
+                new OpcaoMenu("Depositar", this::depositar),
+                new OpcaoMenu("Transferir", this::transferir),
+                new OpcaoMenu("Sair", this::sair)
+            )
+        )),
+        Map.entry("Menu Home Investimento", new Menu(
+            "Qual operação você deseja realizar?",
+            Arrays.asList(
+                new OpcaoMenu("Investir", this::investir),
+                new OpcaoMenu("Retirar", this::retirar),
+                new OpcaoMenu("Sair", this::sair)
+            )
         ))
     ));
     private Pessoa clienteAtual = null;
     private Conta contaAtual = null;
-    private HashSet<Conta> contas = new HashSet<>();
-    private HashSet<Pessoa> pessoas = new HashSet<>();
+    private HashMap<Integer, Conta> contas = new HashMap<>();
+    private HashMap<String, Pessoa> pessoas = new HashMap<>();
+    private HashMap<String, Investimento> investimentos = new HashMap<>(Map.ofEntries(
+        Map.entry("Investimento 1", new Investimento("Investimento 1")),
+        Map.entry("Investimento 2", new Investimento("Investimento 2")),
+        Map.entry("Investimento 3", new Investimento("Investimento 3"))
+    ));
 
     public void mostraMenu(String nome){
         this.MENUS.get(nome).mostraMenu();
@@ -104,28 +122,7 @@ public class Aplicacao {
     }
 
     public void menuHome(Conta conta) {
-        // TODO: passar a lógica comentada para a nova estrutura
-//        br.letscode.ui.Menu menuHome = new br.letscode.ui.Menu("Escolha uma das opções: ",
-//                new String[] { "Sacar", "Depositar", "Transferir", "Sair" });
-//        menuHome.mostraMenu();
-//        Scanner scanner = new Scanner(System.in);
-//        System.out.println("Digite o valor desejado: ");
-//        BigDecimal valor = scanner.nextBigDecimal();
-//        switch (menuHome.pegaResultado()) {
-//            case 1:
-//                // conta.sacar(valor);
-//            case 2:
-//                // conta.depositar(valor);
-//            case 3:
-//                // System.out.println("Qual o número da conta para a qual você deseja
-//                // transferir? ");
-//                // conta.transferir();
-//            case 4:
-//                main(null);
-//            default:
-//                main(null);
-//        }
-//        scanner.close();
+        this.mostraMenu("Menu Home Corrente");
     }
 
     public void criaContaCorrente(){
@@ -144,36 +141,300 @@ public class Aplicacao {
     }
 
     public void acessaCadastro(){
-        // TODO: implementar menu de acesso ao cadastro de pessoa, que pede um cpf ou cnpj e redireciona para a criação de conta
-        System.out.println("Acessando um cadastro existente");
-        // Menu menuVerificacaoPessoa = new Menu("Você já tem cadastro no nosso banco?", new String[] { "Sim", "Não" });
-        // switch (menuVerificacaoPessoa.pegaResultado()) {
-        //     case 1:
-        //         Menu menuPessoa = new Menu("Qual o seu CPF/CNPJ? ", new String[] { "Sair" });
-        //         int entradaUsuario = menuPessoa.pegaResultado();
-        //         for (Pessoa pessoa : pessoas) {
-        //             if (pessoa instanceof PessoaFisica) {
-        //                 if (((PessoaFisica) pessoa).getCpf() == String.valueOf(entradaUsuario)) {
-        //                     return pessoa;
-        //                 }
-        //             } else {
-        //                 if (((PessoaJuridica) pessoa).getCnpj() == String.valueOf(entradaUsuario)) {
-        //                     return pessoa;
-        //                 }
-        //             }
-        //         }
-        //     case 2:
-        //         return criaPessoa();
-        //     default:
-        //         verificaSePessoaExiste();
-        // }
-        // return null;
-        this.mostraMenu("Menu Cria Conta");
+        EntradaDadoMenu<String> entradaIdentificador = new EntradaDadoMenu<>(
+            "Insira seu CPF ou CNPJ",
+            "A entrada inserida não é nem um CPF válido nem um CNPJ válido",
+                (s) -> {
+                    PessoaFisica pf = new PessoaFisica();
+                    PessoaJuridica pj = new PessoaJuridica();
+                    return pf.setCpf(s) || pj.setCnpj(s);
+                },
+                (s) -> s
+        );
+        String identificador = entradaIdentificador.pedeEntrada();
+
+        if(this.pessoas.containsKey(identificador)){
+            this.clienteAtual = this.pessoas.get(identificador);
+            this.mostraMenu("Menu Cria Conta");
+        } else{
+            System.out.println("Cliente não cadastrado no sistema.");
+            this.sair();
+        }
     }
 
     public void entraConta(){
-        // TODO: implementar menu de login em conta, que pede o número da conta e redireciona para o menu principal
-        System.out.println("Entrando em uma conta existente");
+        EntradaDadoMenu<Integer> entradaNumeroConta = new EntradaDadoMenu<>(
+            "Insira o número da conta",
+            "A entrada inserida não pôde ser entendida como um número",
+            (s) -> {
+                try{
+                    Integer.parseInt(s);
+                    return true;
+                } catch(NumberFormatException e){
+                    return false;
+                }
+            },
+            Integer::parseInt
+        );
+        int numeroConta = entradaNumeroConta.pedeEntrada();
+
+        if(this.contas.containsKey(numeroConta)){
+            this.contaAtual = this.contas.get(numeroConta);
+            String identificadorCliente = "";
+            if(this.contaAtual.getCliente() instanceof PessoaFisica){
+                identificadorCliente = ((PessoaFisica)this.contaAtual.getCliente()).getCpf();
+            } else if(this.contaAtual.getCliente() instanceof PessoaJuridica){
+                identificadorCliente = ((PessoaJuridica)this.contaAtual.getCliente()).getCnpj();
+            } else{
+                throw new IllegalStateException("Cliente cadastrado para esta conta é inválido");
+            }
+            if(this.pessoas.containsKey(identificadorCliente)){
+                this.clienteAtual = this.pessoas.get(identificadorCliente);
+                if(this.contaAtual instanceof ContaSaldo){
+                    this.mostraMenu("Menu Home Saldo");
+                } else if(this.contaAtual instanceof ContaInvestimento){
+                    this.mostraMenu("Menu Home Investimento");
+                } else{
+                    throw new IllegalStateException("Tipo de conta não suportada por esta aplicação.");
+                }
+            } else{
+                // Em tese não deveria acontecer, mas no caso de acontecer...
+                System.out.println("Cliente não cadastrado no sistema");
+                this.sair();
+            }
+        } else{
+            System.out.println("Conta não cadastrada no sistema.");
+            this.sair();
+        }
+    }
+
+    public void sacar(){
+        EntradaDadoMenu<BigDecimal> entradaValor = new EntradaDadoMenu<>(
+            "Insira o valor a ser sacado",
+            "A entrada inserida não pôde ser entendida como um número",
+            (s) -> {
+                try{
+                    new BigDecimal(s);
+                    return true;
+                } catch(NumberFormatException e){
+                    return false;
+                }
+            },
+            BigDecimal::new
+        );
+        BigDecimal valor = entradaValor.pedeEntrada();
+
+        ContaSaldo contaSaldo = (ContaSaldo) this.contaAtual;
+        try{
+            contaSaldo.sacar(valor);
+        } catch(Exception e){
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void depositar(){
+        EntradaDadoMenu<BigDecimal> entradaValor = new EntradaDadoMenu<>(
+            "Insira o valor a ser depositado",
+            "A entrada inserida não pôde ser entendida como um número",
+            (s) -> {
+                try{
+                    new BigDecimal(s);
+                    return true;
+                } catch(NumberFormatException e){
+                    return false;
+                }
+            },
+            BigDecimal::new
+        );
+        BigDecimal valor = entradaValor.pedeEntrada();
+
+        ContaSaldo contaSaldo = (ContaSaldo) this.contaAtual;
+        try{
+            contaSaldo.depositar(valor);
+        } catch(Exception e){
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void transferir(){
+        EntradaDadoMenu<Integer> entradaNumeroConta = new EntradaDadoMenu<>(
+            "Insira o número da conta de destino",
+            "A entrada inserida não pôde ser entendida como um número",
+            (s) -> {
+                try{
+                    Integer.parseInt(s);
+                    return true;
+                } catch(NumberFormatException e){
+                    return false;
+                }
+            },
+            Integer::parseInt
+        );
+        int numeroConta = entradaNumeroConta.pedeEntrada();
+
+        if(!this.contas.containsKey(numeroConta)){
+            System.out.println("Conta não encontrada");
+        } else{
+            EntradaDadoMenu<BigDecimal> entradaValor = new EntradaDadoMenu<>(
+                "Insira o valor a ser transferido",
+                "A entrada inserida não pôde ser entendida como um número",
+                (s) -> {
+                    try{
+                        new BigDecimal(s);
+                        return true;
+                    } catch(NumberFormatException e){
+                        return false;
+                    }
+                },
+                BigDecimal::new
+            );
+            BigDecimal valor = entradaValor.pedeEntrada();
+
+            ContaSaldo contaSaldo = (ContaSaldo) this.contaAtual;
+            try{
+                contaSaldo.sacar(valor);
+            } catch(Exception e){
+                System.out.println(e.getMessage());
+            }
+
+            ContaSaldo contaDestino = (ContaSaldo) this.contas.get(numeroConta);
+            try{
+                contaDestino.depositar(valor);
+            } catch(Exception e){
+                // não deveria ser possível, mas no caso de acontecer...
+                System.out.println(e.getMessage());
+                throw new IllegalStateException("Erro de sistema: transferência parcialmente concluída.");
+            }
+        }
+        this.mostraMenu("Menu Home Saldo");
+    }
+
+    public void investir(){
+        EntradaDadoMenu<Integer> entradaNumeroConta = new EntradaDadoMenu<>(
+            "Insira o número da conta de origem",
+            "A entrada inserida não pôde ser entendida como um número",
+            (s) -> {
+                try{
+                    Integer.parseInt(s);
+                    return true;
+                } catch(NumberFormatException e){
+                    return false;
+                }
+            },
+            Integer::parseInt
+        );
+        int numeroConta = entradaNumeroConta.pedeEntrada();
+
+        if(this.contas.containsKey(numeroConta)){
+            Conta conta = this.contas.get(numeroConta);
+            if(conta instanceof ContaSaldo){
+                EntradaDadoMenu<String> entradaInvestimento = new EntradaDadoMenu<>(
+                    "Insira o nome do investimento escolhido",
+                    (s) -> true,
+                    (s) -> s
+                );
+                String nomeInvestimento = entradaInvestimento.pedeEntrada();
+
+                if(this.investimentos.containsKey(nomeInvestimento)){
+                    EntradaDadoMenu<BigDecimal> entradaValor = new EntradaDadoMenu<>(
+                            "Insira o valor a ser investido",
+                            "A entrada inserida não pôde ser entendida como um número",
+                            (s) -> {
+                                try{
+                                    new BigDecimal(s);
+                                    return true;
+                                } catch(NumberFormatException e){
+                                    return false;
+                                }
+                            },
+                            BigDecimal::new
+                    );
+                    BigDecimal valor = entradaValor.pedeEntrada();
+
+                    ContaSaldo contaSaldo = (ContaSaldo) conta;
+                    try{
+                        contaSaldo.sacar(valor);
+                        this.investimentos.get(nomeInvestimento).recebeSaldo(valor);
+                    } catch(Exception e){
+                        System.out.println(e.getMessage());
+                    }
+                } else{
+                    System.out.println("Investimento não cadastrado no sistema.");
+                }
+            } else{
+                System.out.println("Conta informada não é do tipo ContaSaldo");
+            }
+        } else{
+            System.out.println("Conta não cadastrada no sistema.");
+        }
+        this.mostraMenu("Menu Home Investimento");
+    }
+
+    public void retirar(){
+        EntradaDadoMenu<Integer> entradaNumeroConta = new EntradaDadoMenu<>(
+                "Insira o número da conta de destino",
+                "A entrada inserida não pôde ser entendida como um número",
+                (s) -> {
+                    try{
+                        Integer.parseInt(s);
+                        return true;
+                    } catch(NumberFormatException e){
+                        return false;
+                    }
+                },
+                Integer::parseInt
+        );
+        int numeroConta = entradaNumeroConta.pedeEntrada();
+
+        if(this.contas.containsKey(numeroConta)){
+            Conta conta = this.contas.get(numeroConta);
+            if(conta instanceof ContaSaldo){
+                EntradaDadoMenu<String> entradaInvestimento = new EntradaDadoMenu<>(
+                        "Insira o nome do investimento escolhido",
+                        (s) -> true,
+                        (s) -> s
+                );
+                String nomeInvestimento = entradaInvestimento.pedeEntrada();
+
+                if(this.investimentos.containsKey(nomeInvestimento)){
+                    EntradaDadoMenu<BigDecimal> entradaValor = new EntradaDadoMenu<>(
+                            "Insira o valor a ser retirado",
+                            "A entrada inserida não pôde ser entendida como um número",
+                            (s) -> {
+                                try{
+                                    new BigDecimal(s);
+                                    return true;
+                                } catch(NumberFormatException e){
+                                    return false;
+                                }
+                            },
+                            BigDecimal::new
+                    );
+                    BigDecimal valor = entradaValor.pedeEntrada();
+
+                    ContaSaldo contaSaldo = (ContaSaldo) conta;
+                    try{
+                        contaSaldo.depositar(valor);
+                        this.investimentos.get(nomeInvestimento).retiraSaldo(valor);
+                    } catch(Exception e){
+                        System.out.println(e.getMessage());
+                    }
+                } else{
+                    System.out.println("Investimento não cadastrado no sistema.");
+                }
+            } else{
+                System.out.println("Conta informada não é do tipo ContaSaldo");
+            }
+        } else{
+            System.out.println("Conta não cadastrada no sistema.");
+        }
+        this.mostraMenu("Menu Home Investimento");
+    }
+
+    public void sair(){
+        this.clienteAtual = null;
+        this.contaAtual = null;
+        this.mostraMenu("Menu Login");
     }
 
     public static void main(String[] args) {
