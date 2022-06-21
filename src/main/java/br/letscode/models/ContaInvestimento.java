@@ -2,24 +2,20 @@ package br.letscode.models;
 
 import java.math.BigDecimal;
 import java.time.Period;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 
 public class ContaInvestimento extends Conta {
 
     public ContaInvestimento(int numero, Pessoa cliente) {
         super(numero, cliente);
-        investimentos = new HashSet<>();
+        investimentos = new HashMap<>();
     }
 
-    private Set<Investimento> investimentos;
+    private Map<String, Investimento> investimentos;
 
     @Override
     public void processaRendimentos(Period periodo) {
-        Iterator<Investimento> it = investimentos.iterator();
-        while(it.hasNext()) {
-            Investimento investimento = (Investimento)it.next();
+        for (Investimento investimento : investimentos.values()) {
             if (this.getCliente() instanceof PessoaJuridica) {
                 investimento.atualizaSaldo(periodo, BigDecimal.valueOf(1.02));
             } else {
@@ -29,22 +25,28 @@ public class ContaInvestimento extends Conta {
     }
 
     public void investir(String nome, BigDecimal saldo) {
-        Investimento investimento = new Investimento(nome);
-        investimento.recebeSaldo(saldo);
-        investimentos.add(investimento);
+        if(!this.investimentos.containsKey(nome)){
+            Investimento investimento = new Investimento(nome);
+            this.investimentos.put(nome, investimento);
+        }
+        this.investimentos.get(nome).recebeSaldo(saldo);
+    }
+    public void investir(Investimento investimento, BigDecimal saldo){
+        if(!this.investimentos.containsKey(investimento.getNome())){
+            this.investimentos.put(investimento.getNome(), investimento);
+        }
+        this.investimentos.get(investimento.getNome()).recebeSaldo(saldo);
     }
 
     public void retirar(String nome, BigDecimal saldo) {
-        Iterator<Investimento> it = investimentos.iterator();
-        while(it.hasNext()) {
-            Investimento investimento = (Investimento)it.next();
-            if(investimento.getNome().equalsIgnoreCase(nome)) {
+        for (Investimento investimento : investimentos.values()) {
+            if (investimento.getNome().equalsIgnoreCase(nome)) {
                 investimento.retiraSaldo(saldo);
             }
         }
     }
 
-    public Set<Investimento> consultarInvestimentos() {
+    public Map<String, Investimento> consultarInvestimentos() {
 
         return investimentos;
     }

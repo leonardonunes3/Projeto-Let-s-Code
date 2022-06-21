@@ -4,6 +4,7 @@ import java.time.Period;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import br.letscode.models.*;
 import br.letscode.ui.EntradaDadoMenu;
@@ -18,7 +19,7 @@ public class Aplicacao {
             Arrays.asList(
                 new OpcaoMenu("Entrar", this::entraConta),
                 new OpcaoMenu("Criar Conta", () -> this.mostraMenu("Menu Acesso Pessoa")),
-                new OpcaoMenu("Sair", this::exit)
+                new OpcaoMenu("Finalizar", ()->{})
             )
         )),
         Map.entry("Menu Acesso Pessoa", new Menu(
@@ -61,6 +62,8 @@ public class Aplicacao {
             Arrays.asList(
                 new OpcaoMenu("Investir", this::investir),
                 new OpcaoMenu("Retirar", this::retirar),
+                    new OpcaoMenu("Consultar Investimentos", this::consultarInvestimentos),
+                new OpcaoMenu("Atualizar Investimentos", this::atualizarSaldo),
                 new OpcaoMenu("Sair", this::sair)
             )
         ))
@@ -230,7 +233,7 @@ public class Aplicacao {
                 } else if(this.contaAtual instanceof ContaInvestimento){
                     this.mostraMenu("Menu Home Investimento");
                 } else{
-                    throw new IllegalStateException("Tipo de conta não suportada por esta aplicação.");
+                    throw new IllegalStateException("Tipo de conta não suportado por esta aplicação.");
                 }
             } else{
                 // Em tese não deveria acontecer, mas no caso de acontecer...
@@ -389,9 +392,11 @@ public class Aplicacao {
                     BigDecimal valor = entradaValor.pedeEntrada();
 
                     ContaSaldo contaSaldo = (ContaSaldo) conta;
+                    ContaInvestimento contaInvestimento = (ContaInvestimento) this.contaAtual;
                     try{
                         contaSaldo.sacar(valor);
-                        this.investimentos.get(nomeInvestimento).recebeSaldo(valor);
+                        contaInvestimento.investir(this.investimentos.get(nomeInvestimento), valor);
+
                     } catch(Exception e){
                         System.out.println(e.getMessage());
                     }
@@ -477,35 +482,51 @@ public class Aplicacao {
 
     }
 
-    public void atualizarSaldo() {
-        if(contaAtual instanceof ContaCorrente) {
-            System.out.println("Conta Corrente não rentabiliza");
-            this.mostraMenu("Menu Home Saldo");
+    public void consultarInvestimentos() {
+
+        ContaInvestimento contaInvestimento = (ContaInvestimento) this.contaAtual;
+        Map<String, Investimento> investimentos = contaInvestimento.consultarInvestimentos();
+        for(Investimento investimento : investimentos.values()){
+            System.out.printf("%s: R$%.2f\n", investimento.getNome(), investimento.getSaldo().setScale(2, RoundingMode.HALF_UP).doubleValue());
+        }
+        if(investimentos.isEmpty()){
+            System.out.println("Você não possui investimentos no momento.");
         }
 
-        EntradaDadoMenu<Integer> entradaDias = new EntradaDadoMenu<>(
-                "Insira a quantidade de dias para rentabilizar a conta.",
-                "A entrada inserida não pôde ser entendida como um número",
-                (s) -> {
-                    try{
-                        Integer.valueOf(s);
-                        return true;
-                    } catch(NumberFormatException e){
-                        return false;
-                    }
-                },
-                Integer::parseInt
-        );
-        Integer dias = entradaDias.pedeEntrada();
-        contaAtual.processaRendimentos(Period.ofDays(dias));
-        System.out.println("Rendimentos atualizados no período de " + dias + " dias.");
-
-        this.mostraMenu("Menu Home Saldo");
+        this.mostraMenu("Menu Home Investimento");
 
     }
 
-    public void exit(){
+    public void atualizarSaldo() {
+        if(this.contaAtual instanceof ContaCorrente) {
+            System.out.println("Conta Corrente não rentabiliza");
+        } else{
 
+            EntradaDadoMenu<Integer> entradaDias = new EntradaDadoMenu<>(
+                    "Insira a quantidade de dias para rentabilizar a conta.",
+                    "A entrada inserida não pôde ser entendida como um número",
+                    (s) -> {
+                        try{
+                            Integer.valueOf(s);
+                            return true;
+                        } catch(NumberFormatException e){
+                            return false;
+                        }
+                    },
+                    Integer::parseInt
+            );
+            Integer dias = entradaDias.pedeEntrada();
+            this.contaAtual.processaRendimentos(Period.ofDays(dias));
+            System.out.println("Rendimentos atualizados no período de " + dias + " dias.");
+
+        }
+        if(this.contaAtual instanceof ContaSaldo){
+            this.mostraMenu("Menu Home Saldo");
+        } else if(this.contaAtual instanceof ContaInvestimento){
+            this.mostraMenu("Menu Home Investimento");
+        } else{
+            throw new IllegalStateException("Tipo de conta não suportado por esta aplicação.");
+        }
     }
 
     public void sair(){
