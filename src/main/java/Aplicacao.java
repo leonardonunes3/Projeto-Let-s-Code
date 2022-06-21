@@ -1,4 +1,6 @@
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Period;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,7 +17,8 @@ public class Aplicacao {
             "Login",
             Arrays.asList(
                 new OpcaoMenu("Entrar", this::entraConta),
-                new OpcaoMenu("Criar Conta", () -> this.mostraMenu("Menu Acesso Pessoa"))
+                new OpcaoMenu("Criar Conta", () -> this.mostraMenu("Menu Acesso Pessoa")),
+                new OpcaoMenu("Sair", this::exit)
             )
         )),
         Map.entry("Menu Acesso Pessoa", new Menu(
@@ -48,6 +51,8 @@ public class Aplicacao {
                 new OpcaoMenu("Sacar", this::sacar),
                 new OpcaoMenu("Depositar", this::depositar),
                 new OpcaoMenu("Transferir", this::transferir),
+                new OpcaoMenu("Consultar Saldo", this::consultarSaldo),
+                new OpcaoMenu("Atualizar Saldo", this::atualizarSaldo),
                 new OpcaoMenu("Sair", this::sair)
             )
         )),
@@ -461,6 +466,46 @@ public class Aplicacao {
             System.out.println("Conta não cadastrada no sistema.");
         }
         this.mostraMenu("Menu Home Investimento");
+    }
+
+    public void consultarSaldo() {
+
+        ContaSaldo contaSaldo = (ContaSaldo) this.contaAtual;
+        System.out.println("O saldo da conta é de R$ " + contaSaldo.getSaldo().setScale(2, RoundingMode.HALF_UP));
+
+        this.mostraMenu("Menu Home Saldo");
+
+    }
+
+    public void atualizarSaldo() {
+        if(contaAtual instanceof ContaCorrente) {
+            System.out.println("Conta Corrente não rentabiliza");
+            this.mostraMenu("Menu Home Saldo");
+        }
+
+        EntradaDadoMenu<Integer> entradaDias = new EntradaDadoMenu<>(
+                "Insira a quantidade de dias para rentabilizar a conta.",
+                "A entrada inserida não pôde ser entendida como um número",
+                (s) -> {
+                    try{
+                        Integer.valueOf(s);
+                        return true;
+                    } catch(NumberFormatException e){
+                        return false;
+                    }
+                },
+                Integer::parseInt
+        );
+        Integer dias = entradaDias.pedeEntrada();
+        contaAtual.processaRendimentos(Period.ofDays(dias));
+        System.out.println("Rendimentos atualizados no período de " + dias + " dias.");
+
+        this.mostraMenu("Menu Home Saldo");
+
+    }
+
+    public void exit(){
+
     }
 
     public void sair(){
